@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️ Checkout the repository
+      # 1️ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -18,8 +18,8 @@ jobs:
       - name: Configure AWS credentials using OIDC role
         uses: aws-actions/configure-aws-credentials@v2
         with:
-            role-to-assume: arn:aws:iam::938674806440:role/GitHubActionsECRDeployRole
-            aws-region: ap-southeast-1
+          role-to-assume: arn:aws:iam::938674806440:role/GitHubActionsECRDeployRole
+          aws-region: ap-southeast-1
 
       # 3️ Login to Amazon ECR
       - name: Login to Amazon ECR
@@ -30,15 +30,15 @@ jobs:
       # 4️ Build Docker image
       - name: Build Docker image
         run: |
-          IMAGE_NAME= devops-bootcamp/final-project-faridamirul     
-          IMAGE_TAG=${GITHUB_SHA::8}          
+          IMAGE_NAME=devops-bootcamp/final-project-faridamirul
+          IMAGE_TAG=${GITHUB_SHA::8}   # first 8 chars of commit SHA
           docker build -t $IMAGE_NAME:$IMAGE_TAG .
 
       # 5️ Tag Docker image for ECR
       - name: Tag Docker image for ECR
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          IMAGE_NAME= devops-bootcamp/final-project-faridamirul
+          IMAGE_NAME=devops-bootcamp/final-project-faridamirul
           IMAGE_TAG=${GITHUB_SHA::8}
           ECR_URI=$ACCOUNT_ID.dkr.ecr.ap-southeast-1.amazonaws.com/$IMAGE_NAME
           docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
