@@ -59,10 +59,12 @@ jobs:
           docker push $ECR_URI:$IMAGE_TAG
 
       # 8️⃣ Set up Python and install dependencies
-      - name: Set up Python and install dependencies
+      - name: Set up Ansible + boto3
         run: |
-          python3 -m pip install --upgrade pip
-          pip install boto3 botocore ansible amazon.aws
+            python3 -m pip install --upgrade pip
+            pip install boto3 botocore ansible
+            ansible-galaxy collection install amazon.aws
+
 
       # 9️⃣ Deploy via Ansible using SSM
       - name: Deploy via Ansible using SSM
