@@ -1,0 +1,17 @@
+- name: Setup Docker on all servers
+  hosts: all
+  become: yes
+  roles:
+    - docker
+
+- name: Deploy Web Application
+  hosts: webservers
+  become: yes
+  roles:
+    - web
+
+- name: Deploy Monitoring Stack
+  hosts: monitoring
+  become: yes
+  roles:
+    - monitoring
