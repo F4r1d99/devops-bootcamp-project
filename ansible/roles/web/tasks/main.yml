@@ -1,21 +1,33 @@
-- name: Log in to ECR
-  community.aws.aws_ecr_login:
-    registry_ids:
-      - "{{ lookup('env','AWS_ACCOUNT_ID') }}"
-    region: ap-southeast-1
+---
+- name: Set variables
+  set_fact:
+    image_name: devops-bootcamp/final-project-faridamirul
+    image_tag: "{{ ci_image_tag | default('latest') }}"
+    ecr_region: ap-southeast-1
+    aws_account_id: "938674806440"
+    ecr_uri: "{{ aws_account_id }}.dkr.ecr.{{ ecr_region }}.amazonaws.com/{{ image_name }}:{{ image_tag }}"
 
-- name: Pull Web App Docker image from ECR
-  community.docker.docker_image:
-    name: "{{ web_app_image }}"
-    source: pull
-    tag: latest
+- name: Log in to AWS ECR
+  shell: |
+    aws ecr get-login-password --region {{ ecr_region }} | \
+    docker login --username AWS --password-stdin {{ aws_account_id }}.dkr.ecr.{{ ecr_region }}.amazonaws.com
+  args:
+    executable: /bin/bash
 
-- name: Run Web App container
-  community.docker.docker_container:
-    name: my-devops-project
-    image: "{{ web_app_image }}"
-    state: started
-    ports:
-      - "80:80"
-    restart_policy: always
+- name: Stop existing container if running
+  shell: |
+    docker stop final-project || true
+    docker rm final-project || true
+  ignore_errors: yes
 
+- name: Pull latest image from ECR
+  shell: |
+    docker pull {{ ecr_uri }}
+  args:
+    executable: /bin/bash
+
+- name: Run Docker container
+  shell: |
+    docker run -d --name final-project -p 80:80 {{ ecr_uri }}
+  args:
+    executable: /bin/bash
