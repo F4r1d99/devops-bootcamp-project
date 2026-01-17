@@ -22,6 +22,6 @@ resource "aws_iam_role_policy_attachment" "ecr_user" {
 }
 
 resource "aws_iam_instance_profile" "profile" {
-  name = "devops-instance-profile"
+  name = "devops-instance-profile2"
   role = aws_iam_role.ec2_role.name
 }
