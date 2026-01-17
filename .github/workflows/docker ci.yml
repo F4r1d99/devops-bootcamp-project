@@ -57,3 +57,12 @@ jobs:
         run: |
           IMAGE_TAG=${GITHUB_SHA::8}
           docker push $ECR_URI:$IMAGE_TAG
+
+     # 8️⃣ Deploy to Web Server via Ansible
+      - name: Deploy to Web Server via Ansible
+        run: |
+            ansible-playbook -i inventory.ini playbook.yml -K \
+            -e "ci_image_tag=${GITHUB_SHA::8}"
+    
+
+    
