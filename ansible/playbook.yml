@@ -15,9 +15,3 @@
   become: yes
   roles:
     - monitoring
-
-- name: Build Docker image
-  community.docker.docker_image:
-    path: /home/ubuntu/my-devops-project
-    name: "{{ web_app_image | default('devops-bootcamp/final-project-faridamirul:latest') }}"
-    tag: latest
