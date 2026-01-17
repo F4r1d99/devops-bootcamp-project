@@ -58,7 +58,13 @@ jobs:
           IMAGE_TAG=${GITHUB_SHA::8}
           docker push $ECR_URI:$IMAGE_TAG
 
-     # 8️⃣ Deploy to Web Server via Ansible
+      # 8️⃣ Set up Python and install dependencies
+      - name: Set up Python and install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install boto3 botocore ansible amazon.aws
+
+      # 9️⃣ Deploy via Ansible using SSM
       - name: Deploy via Ansible using SSM
         run: |
             ansible-playbook -i ansible/inventory.ini ansible/playbook.yml \
