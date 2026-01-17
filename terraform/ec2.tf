@@ -25,15 +25,24 @@ resource "aws_instance" "ansible" {
 
  user_data = <<-EOF
               #!/bin/bash
-              # Update package index
-              apt update -y
-              # Install Python3 and pip3
+              # Update system packages
+              apt update -y && apt upgrade -y
+
+              # Install Python3, pip, git, curl
               apt install -y python3 python3-pip git curl
-              # Install Ansible
-              pip3 install ansible boto3 botocore
+
+              # Install Ansible, boto3, botocore globally
+              pip3 install --upgrade ansible boto3 botocore
+
               # Install required Ansible collections
               ansible-galaxy collection install amazon.aws community.docker
-            EOF
+
+              # Ensure /usr/local/bin is in PATH for all users
+              echo 'export PATH=$PATH:/usr/local/bin' >> /etc/profile
+
+              # Optional: verify installation
+              ansible --version
+              EOF
 }
 
 resource "aws_instance" "monitoring" {
