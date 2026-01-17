@@ -17,6 +17,7 @@ resource "aws_instance" "ansible" {
   subnet_id              = aws_subnet.private.id
   private_ip             = "10.0.0.135"
   vpc_security_group_ids = [aws_security_group.private_sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.profile.name
   key_name               = aws_key_pair.ansible_key.key_name
 
   tags = {
