@@ -36,9 +36,14 @@ jobs:
       # 4️⃣ Build image
       - name: Build Docker image
         run: |
-          IMAGE_NAME=devops-bootcamp/final-project-faridamirul
-          IMAGE_TAG=${GITHUB_SHA::8}
-          docker build -t $IMAGE_NAME:$IMAGE_TAG .
+            IMAGE_NAME=devops-bootcamp/final-project-faridamirul
+            IMAGE_TAG=${GITHUB_SHA::8}
+
+            docker build \
+            -f lab-final-project/Dockerfile \
+            -t $IMAGE_NAME:$IMAGE_TAG \
+            lab-final-project
+
 
       # 5️⃣ Tag for ECR
       - name: Tag Docker image
