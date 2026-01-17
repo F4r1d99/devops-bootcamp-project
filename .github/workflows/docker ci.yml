@@ -67,10 +67,9 @@ jobs:
 
 
       # 9️⃣ Deploy via Ansible using SSM
-      - name: Run Ansible Playbook
+      - name: Deploy via Ansible using SSM
         run: |
             ansible-playbook -i ansible/inventory.ini ansible/playbook.yml \
-            -e "ci_image_tag=${GITHUB_SHA::8}" \
             -e "ansible_connection=amazon.aws.aws_ssm" \
             -e "ansible_user=ssm-user" \
             -e "ansible_region=ap-southeast-1"
@@ -79,7 +78,8 @@ jobs:
             AWS_REGION: ap-southeast-1
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            ECR_URI: ${{ secrets.ECR_URI }}
+            AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
 
            
 
