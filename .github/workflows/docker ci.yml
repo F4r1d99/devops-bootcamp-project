@@ -32,9 +32,10 @@ jobs:
       # 4️ Build Docker image
       - name: Build Docker image
         run: |
-          IMAGE_NAME=devops-bootcamp/final-project-faridamirul
-          IMAGE_TAG=latest
-          docker build -t $IMAGE_NAME:$IMAGE_TAG ./lab-final-project
+            IMAGE_NAME=devops-bootcamp/final-project-faridamirul
+            IMAGE_TAG=latest
+            docker build -t $IMAGE_NAME:$IMAGE_TAG -f ./lab-final-project/Dockerfile ./lab-final-project
+
 
       # 5️ Tag Docker image for ECR
       - name: Tag Docker image for ECR
