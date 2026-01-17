@@ -23,25 +23,19 @@ resource "aws_instance" "ansible" {
     Name = "ansible-controller"
   }
 
- user_data = <<-EOF
+   user_data = <<-EOF
               #!/bin/bash
               # Update system packages
-              apt update -y && apt upgrade -y
+              sudo apt update && sudo apt upgrade -y
 
-              # Install Python3, pip, git, curl
-              apt install -y python3 python3-pip git curl
+              # Install pipx
+              sudo apt install -y pipx
 
-              # Install Ansible, boto3, botocore globally
-              pip3 install --upgrade ansible boto3 botocore
+              # Install Ansible with dependencies via pipx
+              pipx install --include-deps ansible
 
-              # Install required Ansible collections
-              ansible-galaxy collection install amazon.aws community.docker
-
-              # Ensure /usr/local/bin is in PATH for all users
-              echo 'export PATH=$PATH:/usr/local/bin' >> /etc/profile
-
-              # Optional: verify installation
-              ansible --version
+              # Ensure pipx binaries are in PATH
+              pipx ensurepath
               EOF
 }
 
