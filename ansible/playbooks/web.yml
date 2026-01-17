@@ -1,0 +1,13 @@
+- hosts: web
+  become: yes
+  tasks:
+    - name: Include common setup
+      import_playbook: common.yml
+
+    - name: Deploy Web App
+      import_role:
+        name: web_app
+
+    - name: Deploy Node Exporter
+      import_role:
+        name: node_exporter

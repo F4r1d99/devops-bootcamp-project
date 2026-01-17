@@ -1,5 +1,5 @@
 [web]
-10.0.0.5
+i-0156c5cb7207be5f9  # Web Server
 
 [monitoring]
-10.0.0.136
+i-03efa164dfca6cc08   # Monitoring Server
