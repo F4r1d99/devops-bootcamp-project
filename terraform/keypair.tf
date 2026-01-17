@@ -13,9 +13,9 @@ resource "aws_key_pair" "ansible_key" {
   key_name   = "ansible-key"
   public_key = tls_private_key.ansible_key.public_key_openssh
 
-  lifecycle {
-    prevent_destroy = true
-  }
+  #lifecycle {
+   # prevent_destroy = true
+  #}
 }
 
 # ----------------------------
