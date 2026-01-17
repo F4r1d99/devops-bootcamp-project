@@ -1,10 +1,11 @@
 ---
+# roles/web/tasks/main.yml
 - name: Set variables
   set_fact:
     image_name: devops-bootcamp/final-project-faridamirul
-    image_tag: "{{ ci_image_tag | default('latest') }}"
+    image_tag: latest
     ecr_region: ap-southeast-1
-    aws_account_id: "938674806440"
+    aws_account_id: "938674806440"  # replace with your AWS account ID
     ecr_uri: "{{ aws_account_id }}.dkr.ecr.{{ ecr_region }}.amazonaws.com/{{ image_name }}:{{ image_tag }}"
 
 - name: Log in to AWS ECR
@@ -20,7 +21,7 @@
     docker rm final-project || true
   ignore_errors: yes
 
-- name: Pull latest image from ECR
+- name: Pull Docker image from ECR
   shell: |
     docker pull {{ ecr_uri }}
   args:
