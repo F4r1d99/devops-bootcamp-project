@@ -6,3 +6,4 @@ monitoring_tools:
   - grafana
 grafana_admin_user: "admin"
 grafana_admin_password: "StrongPassword123!"
+
