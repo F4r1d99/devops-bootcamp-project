@@ -22,6 +22,18 @@ resource "aws_instance" "ansible" {
   tags = {
     Name = "ansible-controller"
   }
+
+ user_data = <<-EOF
+              #!/bin/bash
+              # Update package index
+              apt update -y
+              # Install Python3 and pip3
+              apt install -y python3 python3-pip git curl
+              # Install Ansible
+              pip3 install ansible boto3 botocore
+              # Install required Ansible collections
+              ansible-galaxy collection install amazon.aws community.docker
+            EOF
 }
 
 resource "aws_instance" "monitoring" {
