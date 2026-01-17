@@ -24,18 +24,31 @@ resource "aws_instance" "ansible" {
   }
 
    user_data = <<-EOF
-              #!/bin/bash
-              # Update system packages
-              sudo apt update && sudo apt upgrade -y
+             #!/bin/bash
+              # --- update & upgrade OS
+              apt update && apt upgrade -y
 
-              # Install pipx
-              sudo apt install -y pipx
+              # --- install pipx jika belum ada
+              apt install -y pipx
 
-              # Install Ansible with dependencies via pipx
+              # --- install ansible melalui pipx
               pipx install --include-deps ansible
-
-              # Ensure pipx binaries are in PATH
               pipx ensurepath
+
+              # --- install dependencies untuk SSM
+              apt install -y unzip curl python3-pip
+              pip3 install boto3 botocore amazon.aws
+
+              # --- install AWS SSM plugin
+              curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o ssm.deb
+              dpkg -i ssm.deb
+
+              # --- buat folder structure Ansible
+              mkdir -p /home/ubuntu/ansible/{inventory,playbooks,roles/docker/tasks,roles/web/tasks,roles/monitoring/tasks}
+
+              # --- set ownership
+              chown -R ubuntu:ubuntu /home/ubuntu/ansible
+
               EOF
 }
 
