@@ -17,3 +17,7 @@ crash.*.log
 .terraformrc
 terraform.rc
 
+# EC2 SSH keys
+*.pem
+*.ppk
+
