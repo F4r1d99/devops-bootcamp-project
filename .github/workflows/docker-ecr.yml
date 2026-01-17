@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'Dockerfile'
+      - 'lab-project/**'  # triggers if anything in lab-project folder changes
 
 jobs:
   build-and-push:
