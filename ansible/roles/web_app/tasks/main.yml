@@ -1,0 +1,19 @@
+- name: Login to ECR
+  shell: |
+    aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
+  args:
+    executable: /bin/bash
+
+- name: Pull Docker image from ECR
+  docker_image:
+    name: "938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul"
+    source: pull
+
+- name: Run web container
+  docker_container:
+    name: my-devops-project
+    image: "938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul:latest"
+    state: started
+    restart_policy: always
+    ports:
+      - "80:80"

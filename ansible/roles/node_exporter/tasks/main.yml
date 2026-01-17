@@ -1,0 +1,14 @@
+- name: Pull Node Exporter image
+  docker_image:
+    name: prom/node-exporter
+    source: pull
+
+- name: Run Node Exporter container
+  docker_container:
+    name: node_exporter
+    image: prom/node-exporter
+    state: started
+    restart_policy: always
+    ports:
+      - "9100:9100"
+    network_mode: host
