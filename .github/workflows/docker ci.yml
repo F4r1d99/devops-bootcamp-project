@@ -1,43 +1,43 @@
-name: Build, Push Docker Image to ECR
+name: Build and Push Docker Image to ECR
 
 on:
   push:
     branches:
       - main
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️ Checkout the repository
+      # 1️⃣ Checkout this repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️ Configure AWS credentials using OIDC
+      # 2️⃣ Configure AWS credentials using OIDC
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::938674806440:role/github  # replace with your OIDC role
           aws-region: ap-southeast-1
 
-      # 3️ Login to Amazon ECR
+      # 3️⃣ Login to Amazon ECR
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 4️ Build Docker image
+      # 4️⃣ Clone lab-final-project repo
+      - name: Clone lab-final-project repo
+        run: |
+          git clone https://github.com/Infratify/lab-final-project.git
+
+      # 5️⃣ Build Docker image
       - name: Build Docker image
         run: |
-            IMAGE_NAME=devops-bootcamp/final-project-faridamirul
-            IMAGE_TAG=latest
-            docker build -t $IMAGE_NAME:$IMAGE_TAG -f ./lab-final-project/Dockerfile ./lab-final-project
+          IMAGE_NAME=devops-bootcamp/final-project-faridamirul
+          IMAGE_TAG=latest
+          docker build -t $IMAGE_NAME:$IMAGE_TAG ./lab-final-project
 
-
-      # 5️ Tag Docker image for ECR
+      # 6️⃣ Tag Docker image for ECR
       - name: Tag Docker image for ECR
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -47,7 +47,7 @@ jobs:
           docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
 
-      # 6️ Push Docker image to ECR
+      # 7️⃣ Push Docker image to ECR
       - name: Push Docker image to ECR
         run: |
           IMAGE_TAG=latest
