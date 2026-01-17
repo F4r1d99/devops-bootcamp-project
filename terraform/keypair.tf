@@ -1,4 +1,4 @@
-# Generate a new SSH key pair if one doesn't exist
+# Generate a new SSH key pair if one doesn't existfit
 # Generate local SSH key (if you don't have one)
 resource "tls_private_key" "ansible_key" {
   algorithm = "RSA"
