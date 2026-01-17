@@ -1,41 +1,39 @@
-name: Build and Push Docker Image to ECR (OIDC Role)
+name: Build and Push Docker Image to ECR (OIDC)
 
 on:
   push:
     branches:
-      - main  # Trigger on push to main branch
+      - main
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️ Checkout repository
+      # 1️⃣ Checkout
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️ Configure AWS credentials using OIDC role
-      - name: Configure AWS credentials using OIDC role
+      # 2️⃣ OIDC – Assume AWS Role
+      - name: Configure AWS credentials using OIDC
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::938674806440:role/github
           aws-region: ap-southeast-1
 
-      # 3️ Login to Amazon ECR
+      # 3️⃣ Login to ECR
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
-        with:
-          registry-type: private
 
-      # 4️ Build Docker image
+      # 4️⃣ Build image
       - name: Build Docker image
         run: |
           IMAGE_NAME=devops-bootcamp/final-project-faridamirul
-          IMAGE_TAG=${GITHUB_SHA::8}   # first 8 chars of commit SHA
+          IMAGE_TAG=${GITHUB_SHA::8}
           docker build -t $IMAGE_NAME:$IMAGE_TAG .
 
-      # 5️ Tag Docker image for ECR
-      - name: Tag Docker image for ECR
+      # 5️⃣ Tag for ECR
+      - name: Tag Docker image
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           IMAGE_NAME=devops-bootcamp/final-project-faridamirul
@@ -44,8 +42,8 @@ jobs:
           docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
 
-      # 6️ Push Docker image to ECR
-      - name: Push Docker image to ECR
+      # 6️⃣ Push to ECR
+      - name: Push Docker image
         run: |
           IMAGE_TAG=${GITHUB_SHA::8}
           docker push $ECR_URI:$IMAGE_TAG
