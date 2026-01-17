@@ -1,13 +1,13 @@
-- name: Clone Web Application
-  git:
-    repo: "{{ web_app_repo }}"
-    dest: /home/ubuntu/my-devops-project
-    version: main
+- name: Log in to ECR
+  community.aws.aws_ecr_login:
+    registry_ids:
+      - "{{ lookup('env','AWS_ACCOUNT_ID') }}"
+    region: ap-southeast-1
 
-- name: Build Docker image
+- name: Pull Web App Docker image from ECR
   community.docker.docker_image:
-    path: /home/ubuntu/my-devops-project
     name: "{{ web_app_image }}"
+    source: pull
     tag: latest
 
 - name: Run Web App container
@@ -18,3 +18,4 @@
     ports:
       - "80:80"
     restart_policy: always
+
