@@ -96,4 +96,4 @@
       community.docker.docker_compose_v2:
         project_src: "{{ prometheus_dir }}"
         state: present
-        restarted: true
+        recreate: true
