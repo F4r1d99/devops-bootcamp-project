@@ -26,10 +26,8 @@
         enabled: yes
 
     - name: Login to AWS ECR
-      docker_login:
-        registry_url: i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
-        username: AWS
-        password: "{{ lookup('pipe', 'aws ecr get-login-password --region ap-southeast-1') }}"
+      community.aws.ecr_login:
+        region: ap-southeast-1
 
     - name: Pull Docker image from ECR
       docker_image:
@@ -110,4 +108,3 @@
     - name: Cloudflare Tunnel Reminder
       debug:
         msg: "Please install cloudflared on monitoring server and create a tunnel for monitoring.frdamirul.com"
-
