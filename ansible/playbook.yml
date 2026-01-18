@@ -45,13 +45,13 @@
     - name: Pull Docker image from ECR
       community.docker.docker_image:
         name: 938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul
-        tag: latest
+        tag: Latest
         source: pull
 
     - name: Run Docker container
       community.docker.docker_container:
         name: final-project
-        image: 938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul:latest
+        image: 938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul:Latest
         state: started
         restart_policy: unless-stopped
         ports:
