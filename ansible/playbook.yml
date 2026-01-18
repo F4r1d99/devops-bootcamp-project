@@ -119,7 +119,8 @@
 
       volumes:
         grafana_data:
-      mode: '0644'
+    mode: '0644'
+
 
     - name: Ensure Docker CLI Compose plugin directory exists
       file:
