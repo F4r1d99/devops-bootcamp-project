@@ -17,8 +17,16 @@
           - unzip
           - curl
           - git
-          - awscli
         state: present
+
+    - name: Install AWS CLI v2
+      shell: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+        unzip -o /tmp/awscliv2.zip -d /tmp
+        sudo /tmp/aws/install --update
+      args:
+        creates: /usr/local/bin/aws
+
 
     - name: Ensure Docker service is running
       service:
