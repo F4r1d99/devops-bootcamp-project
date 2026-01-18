@@ -1,10 +1,11 @@
-# Web Server SG (Public)
+# Web Server SG
 resource "aws_security_group" "public_sg" {
   name        = "devops-public-sg"
-  description = "Web Server SG"
   vpc_id      = aws_vpc.devops_vpc.id
+  description = "Allow HTTP from anywhere and SSH from VPC"
 
   ingress {
+    description = "HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -12,10 +13,11 @@ resource "aws_security_group" "public_sg" {
   }
 
   ingress {
+    description = "SSH from VPC"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/24"]
+    cidr_blocks = [aws_vpc.devops_vpc.cidr_block]
   }
 
   egress {
@@ -24,19 +26,21 @@ resource "aws_security_group" "public_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = { Name = "devops-public-sg" }
 }
 
-# Controller & Monitoring SG (Private)
+# Private SG
 resource "aws_security_group" "private_sg" {
   name        = "devops-private-sg"
-  description = "Ansible + Monitoring SG"
   vpc_id      = aws_vpc.devops_vpc.id
+  description = "Allow SSH from VPC only"
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/24"]
+    cidr_blocks = [aws_vpc.devops_vpc.cidr_block]
   }
 
   egress {
@@ -45,4 +49,6 @@ resource "aws_security_group" "private_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = { Name = "devops-private-sg" }
 }
