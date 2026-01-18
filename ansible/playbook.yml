@@ -88,49 +88,51 @@
                 - targets: ['localhost:9090']
         mode: '0644'
 
-    - name: Deploy Docker Compose file
-      copy:
-        dest: "{{ docker_compose_file }}"
-        content: |
-          version: "3.9"
-          services:
+- name: Deploy Docker Compose file
+  copy:
+    dest: "{{ docker_compose_file }}"
+    mode: '0644'
+    content: |
+      version: "3.9"
+      services:
         prometheus:
-              image: prom/prometheus:latest
-              container_name: prometheus
-              restart: unless-stopped
-              ports:
-                - "9090:9090"
-              volumes:
-                - ./prometheus:/etc/prometheus
-              command:
-                - "--config.file=/etc/prometheus/prometheus.yml"
+          image: prom/prometheus:latest
+          container_name: prometheus
+          restart: unless-stopped
+          ports:
+            - "9090:9090"
+          volumes:
+            - ./prometheus:/etc/prometheus
+          command:
+            - "--config.file=/etc/prometheus/prometheus.yml"
 
-        grafana:
-              image: grafana/grafana:latest
-              container_name: grafana
-              restart: unless-stopped
-              ports:
-                - "3000:3000"
-              environment:
-                GF_SECURITY_ADMIN_USER: admin
-                GF_SECURITY_ADMIN_PASSWORD: admin
-              volumes:
-                - grafana_data:/var/lib/grafana
+    grafana:
+          image: grafana/grafana:latest
+          container_name: grafana
+          restart: unless-stopped
+          ports:
+            - "3000:3000"
+          environment:
+            GF_SECURITY_ADMIN_USER: admin
+            GF_SECURITY_ADMIN_PASSWORD: admin
+          volumes:
+            - grafana_data:/var/lib/grafana
 
-        volumes:
-            grafana_data:
+    volumes:
+        grafana_data:
+
         mode: '0644'
 
-    - name: Remove old Grafana and Prometheus containers
-      community.docker.docker_container:
+- name: Remove old Grafana and Prometheus containers
+  community.docker.docker_container:
         name: "{{ item }}"
         state: absent
-      loop:
+  loop:
         - grafana
         - prometheus
 
-    - name: Start Monitoring Stack with Docker Compose
-      community.docker.docker_compose_v2:
+- name: Start Monitoring Stack with Docker Compose
+  community.docker.docker_compose_v2:
         project_src: "{{ prometheus_dir }}"
         state: present
         recreate: yes
