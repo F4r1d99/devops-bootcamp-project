@@ -82,7 +82,7 @@
 
     - name: Create Prometheus directory
       file:
-        path: /opt/prometheus
+        path: "{{ prometheus_dir }}"
         state: directory
         owner: root
         group: root
@@ -90,7 +90,7 @@
 
     - name: Create Monitoring directory
       file:
-        path: /opt/monitoring
+        path: "{{ monitoring_dir }}"
         state: directory
         owner: root
         group: root
@@ -99,7 +99,7 @@
     - name: Create Prometheus config
       template:
         src: prometheus.yml.j2
-        dest: /opt/prometheus/prometheus.yml
+        dest: "{{ prometheus_dir }}/prometheus.yml"
         owner: root
         group: root
         mode: '0644'
@@ -107,15 +107,21 @@
     - name: Create Docker Compose file
       template:
         src: docker-compose-monitoring.yml.j2
-        dest: /opt/monitoring/docker-compose.yml
+        dest: "{{ monitoring_dir }}/docker-compose.yml"
         owner: root
         group: root
         mode: '0644'
 
-    - name: Start Monitoring Stack
-      command: docker-compose up -d
+    - name: Stop any existing monitoring containers
+      shell: docker-compose down
       args:
-        chdir: /opt/monitoring
+        chdir: "{{ monitoring_dir }}"
+      ignore_errors: yes
+
+    - name: Start Monitoring Stack
+      shell: docker-compose up -d
+      args:
+        chdir: "{{ monitoring_dir }}"
 
     - name: Cloudflare Tunnel Reminder
       debug:
