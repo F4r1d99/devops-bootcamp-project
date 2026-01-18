@@ -2,12 +2,7 @@
 - name: Deploy Web Server
   hosts: web
   become: yes
-  vars:
-    aws_region: ap-southeast-1
-    ecr_registry_url: 938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
-    ecr_image: devops-bootcamp/final-project-faridamirul
-    ecr_tag: latest
-
+  remote_tmp: /tmp/.ansible/tmp
   tasks:
     - name: Update and upgrade apt
       apt:
@@ -23,13 +18,8 @@
           - unzip
           - curl
           - git
-          - python3-pip
+          - awscli
         state: present
-
-    - name: Install Docker Python SDK
-      pip:
-        name: docker
-        executable: pip3
 
     - name: Ensure Docker service is running
       service:
@@ -38,21 +28,23 @@
         enabled: yes
 
     - name: Login to ECR using instance role
-      community.aws.ecr_login:
-        region: "{{ aws_region }}"
-        registry_ids:
-          - 938674806440
+      ansible.builtin.shell:
+        cmd: >
+          aws ecr get-login-password --region ap-southeast-1
+          | docker login --username AWS --password-stdin 938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
+      args:
+        executable: /bin/bash
 
     - name: Pull Docker image from ECR
-      docker_image:
-        name: "{{ ecr_registry_url }}/{{ ecr_image }}"
-        tag: "{{ ecr_tag }}"
+      community.docker.docker_image:
+        name: 938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul
+        tag: latest
         source: pull
 
     - name: Run Docker container
-      docker_container:
+      community.docker.docker_container:
         name: final-project
-        image: "{{ ecr_registry_url }}/{{ ecr_image }}:{{ ecr_tag }}"
+        image: 938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul:latest
         state: started
         restart_policy: unless-stopped
         ports:
@@ -61,6 +53,7 @@
 - name: Deploy Monitoring Server
   hosts: monitoring
   become: yes
+  remote_tmp: /tmp/.ansible/tmp
   tasks:
     - name: Update and upgrade apt
       apt:
@@ -68,19 +61,12 @@
         upgrade: dist
         cache_valid_time: 3600
 
-    - name: Install Docker, Docker Compose, and dependencies
+    - name: Install Docker and Docker Compose
       apt:
         name:
           - docker.io
           - docker-compose
-          - python3-pip
-          - curl
         state: present
-
-    - name: Install Docker Python SDK
-      pip:
-        name: docker
-        executable: pip3
 
     - name: Ensure Docker service is running
       service:
@@ -125,25 +111,6 @@
       args:
         chdir: /opt/monitoring
 
-    - name: Download Cloudflared binary
-      get_url:
-        url: https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
-        dest: /usr/local/bin/cloudflared
-        mode: '0755'
-
-    - name: Create Cloudflared config directory
-      file:
-        path: /etc/cloudflared
-        state: directory
-        owner: root
-        group: root
-        mode: '0755'
-
-    - name: Reminder to create Cloudflare tunnel credentials
+    - name: Cloudflare Tunnel Reminder
       debug:
-        msg: |
-          Cloudflared binary installed at /usr/local/bin/cloudflared
-          Please create your Cloudflare tunnel and credentials JSON at /etc/cloudflared/
-          Example:
-            cloudflared tunnel login
-            cloudflared tunnel create monitoring-tunnel
+        msg: "Please install cloudflared on monitoring server and create a tunnel for monitoring.frdamirul.com"
