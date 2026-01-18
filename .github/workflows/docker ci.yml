@@ -14,11 +14,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout the main repo (required for OIDC)
+      # 1️⃣ Checkout the main repo (submodules disabled)
       - name: Checkout main repo
         uses: actions/checkout@v4
         with:
-          submodules: false
+          submodules: false   # ✅ important to ignore lab-final-project submodule
 
       # 2️⃣ Configure AWS credentials using OIDC
       - name: Configure AWS credentials using OIDC role
@@ -31,13 +31,13 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 4️⃣ Clone the lab-final-project repo
+      # 4️⃣ Clone the lab-final-project repo separately
       - name: Clone lab-final-project
         run: |
           git clone https://github.com/Infratify/lab-final-project.git
-          ls -lah lab-final-project  # just to verify
+          ls -lah lab-final-project  # verify contents
 
-      # 5️⃣ Build Docker image from cloned lab project
+      # 5️⃣ Build Docker image from lab-final-project
       - name: Build Docker image
         run: |
           IMAGE_NAME=devops-bootcamp/final-project-faridamirul
