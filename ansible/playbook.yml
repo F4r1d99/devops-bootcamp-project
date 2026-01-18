@@ -16,6 +16,7 @@
           - docker-compose
           - unzip
           - curl
+          - git
         state: present
 
     - name: Ensure Docker service is running
@@ -24,25 +25,36 @@
         state: started
         enabled: yes
 
-    - name: Install AWS CLI v2
-      shell: |
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-        unzip /tmp/awscliv2.zip -d /tmp
-        sudo /tmp/aws/install
-      args:
-        creates: /usr/local/bin/aws
+    - name: Install Amazon ECR Docker Credential Helper
+      get_url:
+        url: https://github.com/aws/amazon-ecr-credential-helper/releases/download/v0.7.0/docker-credential-ecr-login-v0.7.0-linux-amd64.tar.gz
+        dest: /tmp/docker-credential-ecr-login.tar.gz
 
-    - name: Login to AWS ECR
-      shell: aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
-      args:
-        executable: /bin/bash
+    - name: Extract and move ECR credential helper
+      unarchive:
+        src: /tmp/docker-credential-ecr-login.tar.gz
+        dest: /usr/local/bin
+        remote_src: yes
+        mode: '0755'
+
+    - name: Configure Docker to use ECR credential helper
+      copy:
+        dest: /home/ssm-user/.docker/config.json
+        content: |
+          {
+            "credHelpers": {
+              "i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com": "ecr-login"
+            }
+          }
+        owner: ssm-user
+        group: ssm-user
+        mode: '0600'
 
     - name: Pull Docker image from ECR
       docker_image:
         name: i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul
         tag: latest
         source: pull
-
 
     - name: Run Docker container
       docker_container:
