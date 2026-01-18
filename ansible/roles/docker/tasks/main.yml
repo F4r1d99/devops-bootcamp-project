@@ -1,9 +1,8 @@
----
 - name: Update apt cache
   apt:
     update_cache: yes
 
-- name: Install prerequisite packages
+- name: Install prerequisites
   apt:
     name:
       - apt-transport-https
@@ -11,7 +10,6 @@
       - curl
       - gnupg-agent
       - software-properties-common
-      - awscli
     state: present
 
 - name: Add Docker GPG key
@@ -22,9 +20,8 @@
 - name: Add Docker repository
   apt_repository:
     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
-    state: present
 
-- name: Install Docker Engine
+- name: Install Docker
   apt:
     name: docker-ce
     state: latest
@@ -35,4 +32,3 @@
     name: docker
     state: started
     enabled: yes
-

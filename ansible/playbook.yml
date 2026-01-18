@@ -1,20 +1,17 @@
-- name: Base Configuration (Docker)
+- name: Setup Docker on all servers
   hosts: all
-  become: true
-  gather_facts: false
+  become: yes
   roles:
     - docker
 
 - name: Deploy Web Application
-  hosts: web
-  become: true
-  gather_facts: false
+  hosts: webservers
+  become: yes
   roles:
     - web
 
 - name: Deploy Monitoring Stack
   hosts: monitoring
-  become: true
-  gather_facts: false
+  become: yes
   roles:
     - monitoring
