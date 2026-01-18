@@ -27,7 +27,7 @@
 
     - name: Install Amazon ECR Docker Credential Helper
       get_url:
-        url: https://github.com/aws/amazon-ecr-credential-helper/releases/download/v0.7.0/docker-credential-ecr-login-v0.7.0-linux-amd64.tar.gz
+        url: https://github.com/aws/amazon-ecr-credential-helper/releases/download/v0.7.4/docker-credential-ecr-login-v0.7.4-linux-amd64.tar.gz
         dest: /tmp/docker-credential-ecr-login.tar.gz
 
     - name: Extract and move ECR credential helper
