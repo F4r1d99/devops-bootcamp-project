@@ -6,7 +6,7 @@ resource "aws_instance" "web_server" {
   private_ip                  = "10.0.0.5"
   associate_public_ip_address = true
   key_name                    = "devops-bootcamp-key"
-  security_groups             = [aws_security_group.web_sg.name]
+  security_groups             = [aws_security_group.web_sg.id] 
   iam_instance_profile        = aws_iam_instance_profile.ssm_profile.name
   tags = { Name = "WebServer" }
 }
@@ -19,7 +19,7 @@ resource "aws_instance" "ansible_controller" {
   private_ip                  = "10.0.0.135"
   associate_public_ip_address = false
   key_name                    = "devops-bootcamp-key"
-  security_groups             = [aws_security_group.private_sg.name]
+  security_groups             = [aws_security_group.web_sg.id] 
   iam_instance_profile        = aws_iam_instance_profile.ssm_profile.name
   tags = { Name = "AnsibleController" }
 }
@@ -32,7 +32,7 @@ resource "aws_instance" "monitoring_server" {
   private_ip                  = "10.0.0.136"
   associate_public_ip_address = false
   key_name                    = "devops-bootcamp-key"
-  security_groups             = [aws_security_group.private_sg.name]
+  security_groups             = [aws_security_group.web_sg.id] 
   iam_instance_profile        = aws_iam_instance_profile.ssm_profile.name
   tags = { Name = "MonitoringServer" }
 }
