@@ -94,6 +94,8 @@
 
 - hosts: monitoring
   become: true
+  vars:
+    prometheus_dir: /home/ssm-user/devops-bootcamp-project/monitoring
   tasks:
 
     - name: Ensure Docker CLI Compose plugin directory exists
