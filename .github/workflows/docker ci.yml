@@ -18,7 +18,10 @@ jobs:
       - name: Checkout main repo
         uses: actions/checkout@v4
         with:
-          submodules: false   # ✅ important to ignore lab-final-project submodule
+          ref: main
+          submodules: false    # penting! jangan recursive
+          persist-credentials: true
+          clean: true  # ✅ important to ignore lab-final-project submodule
 
       # 2️⃣ Configure AWS credentials using OIDC
       - name: Configure AWS credentials using OIDC role
