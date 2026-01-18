@@ -75,54 +75,54 @@
         state: present
 
     - name: Ensure Docker service is running
-        service:
+      service:
           name: docker
           state: started
           enabled: yes
 
-      - name: Create Prometheus directory
-        file:
+    - name: Create Prometheus directory
+      file:
           path: /opt/prometheus
           state: directory
           owner: root
           group: root
           mode: '0755'
 
-      - name: Create Monitoring directory
-        file:
+    - name: Create Monitoring directory
+      file:
           path: /opt/monitoring
           state: directory
           owner: root
           group: root
           mode: '0755'
 
-      - name: Create Prometheus config
-        template:
+    - name: Create Prometheus config
+      template:
           src: prometheus.yml.j2
           dest: /opt/prometheus/prometheus.yml
           owner: root
           group: root
           mode: '0644'
 
-      - name: Create Docker Compose file
-        template:
+    - name: Create Docker Compose file
+      template:
           src: docker-compose-monitoring.yml.j2
           dest: /opt/monitoring/docker-compose.yml
           owner: root
           group: root
           mode: '0644'
 
-      - name: Stop any existing monitoring containers
-        shell: docker-compose down
-        args:
+    - name: Stop any existing monitoring containers
+      shell: docker-compose down
+      args:
           chdir: /opt/monitoring
-        ignore_errors: yes
+      ignore_errors: yes
 
-      - name: Start Monitoring Stack
-        shell: docker-compose up -d
-        args:
-          chdir: /opt/monitoring'
+    - name: Start Monitoring Stack
+      shell: docker-compose up -d
+      args:
+          chdir: /opt/monitoring
 
-      - name: Cloudflare Tunnel Reminder
-        debug:
+    - name: Cloudflare Tunnel Reminder
+      debug:
           msg: "Please install cloudflared on monitoring server and create a tunnel for monitoring.frdamirul.com"
