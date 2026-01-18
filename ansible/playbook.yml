@@ -133,6 +133,6 @@
       community.docker.docker_compose_v2:
         project_src: "{{ prometheus_dir }}"
         state: present
-        recreate: yes
+        recreate: auto
 
 
