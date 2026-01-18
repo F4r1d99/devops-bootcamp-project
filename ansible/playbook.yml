@@ -1,5 +1,5 @@
 ---
-- name: Deploy Web Server
+- name: Deploy Web Server with Node Exporter
   hosts: web
   become: yes
   tasks:
@@ -26,7 +26,6 @@
         sudo /tmp/aws/install --update
       args:
         creates: /usr/local/bin/aws
-
 
     - name: Ensure Docker service is running
       service:
@@ -57,7 +56,53 @@
         ports:
           - "80:80"
 
-- name: Deploy Monitoring Stack
+    # --- Node Exporter Deployment ---
+    - name: Download Node Exporter
+      get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz"
+        dest: "/tmp/node_exporter.tar.gz"
+
+    - name: Extract Node Exporter
+      unarchive:
+        src: /tmp/node_exporter.tar.gz
+        dest: /usr/local/bin/
+        remote_src: yes
+        creates: /usr/local/bin/node_exporter-1.6.1.linux-amd64/node_exporter
+
+    - name: Move Node Exporter binary
+      command: mv /usr/local/bin/node_exporter-1.6.1.linux-amd64/node_exporter /usr/local/bin/node_exporter
+      args:
+        creates: /usr/local/bin/node_exporter
+
+    - name: Create node_exporter user
+      user:
+        name: node_exporter
+        shell: /usr/sbin/nologin
+        system: yes
+
+    - name: Setup Node Exporter systemd service
+      copy:
+        dest: /etc/systemd/system/node_exporter.service
+        content: |
+          [Unit]
+          Description=Node Exporter
+          After=network.target
+
+          [Service]
+          User=node_exporter
+          ExecStart=/usr/local/bin/node_exporter
+
+          [Install]
+          WantedBy=default.target
+
+    - name: Start Node Exporter service
+      systemd:
+        name: node_exporter
+        enabled: yes
+        state: started
+
+
+- name: Deploy Monitoring Stack (Prometheus + Grafana)
   hosts: monitoring
   become: true
   vars:
@@ -86,6 +131,10 @@
             - job_name: 'prometheus'
               static_configs:
                 - targets: ['localhost:9090']
+
+            - job_name: 'web_servers'
+              static_configs:
+                - targets: [{% for host in groups['web'] %}'{{ host }}:9100'{% if not loop.last %}, {% endif %}{% endfor %}]
         mode: '0644'
 
     - name: Deploy Docker Compose file
@@ -134,5 +183,3 @@
         project_src: "{{ prometheus_dir }}"
         state: present
         recreate: auto
-
-
