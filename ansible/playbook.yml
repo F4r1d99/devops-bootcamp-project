@@ -3,10 +3,11 @@
   hosts: web
   become: yes
   vars:
-    ecr_region: ap-southeast-1
-    ecr_registry: i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
+    aws_region: ap-southeast-1
+    ecr_registry_url: 938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
     ecr_image: devops-bootcamp/final-project-faridamirul
     ecr_tag: latest
+
   tasks:
     - name: Update and upgrade apt
       apt:
@@ -22,7 +23,13 @@
           - unzip
           - curl
           - git
+          - python3-pip
         state: present
+
+    - name: Install Docker Python SDK
+      pip:
+        name: docker
+        executable: pip3
 
     - name: Ensure Docker service is running
       service:
@@ -30,24 +37,28 @@
         state: started
         enabled: yes
 
-    - name: Login to AWS ECR
+    - name: Login to ECR using instance role
       community.aws.ecr_login:
-        region: "{{ ecr_region }}"
+        region: "{{ aws_region }}"
+        registry_ids:
+          - 938674806440
 
     - name: Pull Docker image from ECR
       docker_image:
-        name: "{{ ecr_registry }}/{{ ecr_image }}"
+        name: "{{ ecr_registry_url }}/{{ ecr_image }}"
         tag: "{{ ecr_tag }}"
         source: pull
 
     - name: Run Docker container
       docker_container:
         name: final-project
-        image: "{{ ecr_registry }}/{{ ecr_image }}:{{ ecr_tag }}"
+        image: "{{ ecr_registry_url }}/{{ ecr_image }}:{{ ecr_tag }}"
         state: started
         restart_policy: unless-stopped
         ports:
           - "80:80"
+
+---
 
 - name: Deploy Monitoring Server
   hosts: monitoring
@@ -59,12 +70,19 @@
         upgrade: dist
         cache_valid_time: 3600
 
-    - name: Install Docker and Docker Compose
+    - name: Install Docker, Docker Compose, and dependencies
       apt:
         name:
           - docker.io
           - docker-compose
+          - python3-pip
+          - curl
         state: present
+
+    - name: Install Docker Python SDK
+      pip:
+        name: docker
+        executable: pip3
 
     - name: Ensure Docker service is running
       service:
@@ -109,6 +127,25 @@
       args:
         chdir: /opt/monitoring
 
-    - name: Cloudflare Tunnel Reminder
+    - name: Download Cloudflared binary
+      get_url:
+        url: https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+        dest: /usr/local/bin/cloudflared
+        mode: '0755'
+
+    - name: Create Cloudflared config directory
+      file:
+        path: /etc/cloudflared
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Reminder to create Cloudflare tunnel credentials
       debug:
-        msg: "Please install cloudflared on monitoring server and create a tunnel for monitoring.frdamirul.com"
+        msg: |
+          Cloudflared binary installed at /usr/local/bin/cloudflared
+          Please create your Cloudflare tunnel and credentials JSON at /etc/cloudflared/
+          Example:
+            cloudflared tunnel login
+            cloudflared tunnel create monitoring-tunnel
