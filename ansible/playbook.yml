@@ -49,8 +49,6 @@
         ports:
           - "80:80"
 
----
-
 - name: Deploy Monitoring Server
   hosts: monitoring
   become: yes
