@@ -1,4 +1,3 @@
-resource "aws_ecr_repository" "final_project" {
-  name = "devops-bootcamp/final-project-frdamirul"
+resource "aws_ecr_repository" "app_repo" {
+  name = "devops-bootcamp/final-project-faridamirul"
 }
-

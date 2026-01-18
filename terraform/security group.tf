@@ -1,6 +1,8 @@
-resource "aws_security_group" "web_sg" {
-  name   = "devops-public-sg"
-  vpc_id = aws_vpc.devops_vpc.id
+# Web Server SG (Public)
+resource "aws_security_group" "public_sg" {
+  name        = "devops-public-sg"
+  description = "Web Server SG"
+  vpc_id      = aws_vpc.devops_vpc.id
 
   ingress {
     from_port   = 80
@@ -24,9 +26,11 @@ resource "aws_security_group" "web_sg" {
   }
 }
 
+# Controller & Monitoring SG (Private)
 resource "aws_security_group" "private_sg" {
-  name   = "devops-private-sg"
-  vpc_id = aws_vpc.devops_vpc.id
+  name        = "devops-private-sg"
+  description = "Ansible + Monitoring SG"
+  vpc_id      = aws_vpc.devops_vpc.id
 
   ingress {
     from_port   = 22
