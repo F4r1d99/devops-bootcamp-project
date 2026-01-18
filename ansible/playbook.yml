@@ -118,13 +118,6 @@
 
     - name: Start Monitoring Stack
       community.docker.docker_compose_v2:
-        project_src: /home/ssm-user/devops-bootcamp-project/monitoring
-        state: present
-        recreate: always
-
-
-    - name: Start Monitoring Stack
-      community.docker.docker_compose_v2:
         project_src: "{{ prometheus_dir }}"
         state: present
         recreate: auto
