@@ -2,6 +2,11 @@
 - name: Deploy Web Server
   hosts: web
   become: yes
+  vars:
+    ecr_region: ap-southeast-1
+    ecr_registry: i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
+    ecr_image: devops-bootcamp/final-project-faridamirul
+    ecr_tag: latest
   tasks:
     - name: Update and upgrade apt
       apt:
@@ -17,7 +22,6 @@
           - unzip
           - curl
           - git
-          - amazon-ecr-credential-helper
         state: present
 
     - name: Ensure Docker service is running
@@ -26,36 +30,26 @@
         state: started
         enabled: yes
 
-- name: Configure Docker to use ECR credential helper
-  copy:
-    dest: /home/ssm-user/.docker/config.json
-    content: |
-      {
-        "credHelpers": {
-          "i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com": "ecr-login"
-        }
-      }
-    owner: ssm-user
-    group: ssm-user
-    mode: '0600'
-  become: no
-
+    - name: Login to AWS ECR
+      community.aws.ecr_login:
+        region: "{{ ecr_region }}"
 
     - name: Pull Docker image from ECR
       docker_image:
-        name: i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul
-        tag: latest
+        name: "{{ ecr_registry }}/{{ ecr_image }}"
+        tag: "{{ ecr_tag }}"
         source: pull
 
     - name: Run Docker container
       docker_container:
         name: final-project
-        image: i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul:latest
+        image: "{{ ecr_registry }}/{{ ecr_image }}:{{ ecr_tag }}"
         state: started
         restart_policy: unless-stopped
         ports:
           - "80:80"
 
+---
 
 - name: Deploy Monitoring Server
   hosts: monitoring
