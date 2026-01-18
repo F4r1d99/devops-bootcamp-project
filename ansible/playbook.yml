@@ -92,6 +92,30 @@
         - grafana
         - prometheus
 
+- hosts: monitoring
+  become: yes
+  tasks:
+    - name: Ensure Docker CLI Compose plugin directory exists
+      file:
+        path: /usr/local/lib/docker/cli-plugins
+        state: directory
+        mode: '0755'
+
+    - name: Install Docker Compose V2 plugin
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.22.2/docker-compose-linux-x86_64
+        dest: /usr/local/lib/docker/cli-plugins/docker-compose
+        mode: '0755'
+      register: compose_install
+
+    - name: Verify Docker Compose V2 installation
+      command: docker compose version
+      register: compose_version
+      changed_when: false
+
+    - debug:
+        msg: "Docker Compose installed: {{ compose_version.stdout }}"
+
     - name: Start Monitoring Stack
       community.docker.docker_compose_v2:
         project_src: "{{ prometheus_dir }}"
