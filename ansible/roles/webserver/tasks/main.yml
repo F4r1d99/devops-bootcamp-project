@@ -1,0 +1,49 @@
+# Install Docker and Docker Compose
+- name: Install Docker
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - docker.io
+    - docker-compose
+
+- name: Ensure Docker service is running
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+# Clone Web Application
+- name: Clone Web Application Repository
+  git:
+    repo: https://github.com/Infratify/lab-final-project
+    dest: /home/ubuntu/my-devops-project
+    version: main
+
+# Build Docker Image
+- name: Build Docker Image
+  docker_image:
+    path: /home/ubuntu/my-devops-project
+    name: my-devops-project
+    tag: latest
+    state: present
+
+# Run Docker Container
+- name: Run Docker Container
+  docker_container:
+    name: my-devops-project
+    image: my-devops-project:latest
+    state: started
+    restart_policy: always
+    ports:
+      - "80:80"
+
+# Node Exporter for Prometheus metrics
+- name: Run Node Exporter
+  docker_container:
+    name: node_exporter
+    image: prom/node-exporter
+    state: started
+    restart_policy: always
+    network_mode: host
