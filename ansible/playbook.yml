@@ -61,42 +61,66 @@
   hosts: monitoring
   become: true
   vars:
-    prometheus_dir: /opt/monitoring
+    prometheus_dir: /home/ssm-user/devops-bootcamp-project/monitoring
     prometheus_config: "{{ prometheus_dir }}/prometheus.yml"
-    docker_compose_file: "{{ prometheus_dir }}/docker-compose-monitoring.yml"
+    docker_compose_file: "{{ prometheus_dir }}/docker-compose.yml"
 
   tasks:
-    - name: Ensure monitoring directory exists
+    - name: Ensure monitoring directories exist
       file:
-        path: "{{ prometheus_dir }}"
+        path: "{{ item }}"
         state: directory
         mode: '0755'
+      loop:
+        - "{{ prometheus_dir }}"
+        - "{{ prometheus_dir }}/prometheus"
 
     - name: Deploy Prometheus config
-      template:
-        src: templates/prometheus.yml.j2
+      copy:
         dest: "{{ prometheus_config }}"
+        content: |
+          global:
+            scrape_interval: 15s
+
+          scrape_configs:
+            - job_name: 'prometheus'
+              static_configs:
+                - targets: ['localhost:9090']
         mode: '0644'
 
     - name: Deploy Docker Compose file
-      template:
-        src: templates/docker-compose-monitoring.yml.j2
+      copy:
         dest: "{{ docker_compose_file }}"
+        content: |
+          version: "3.9"
+
+        services:
+            prometheus:
+              image: prom/prometheus:latest
+              container_name: prometheus
+              restart: unless-stopped
+              ports:
+                - "9090:9090"
+              volumes:
+                - ./prometheus:/etc/prometheus
+              command:
+                - "--config.file=/etc/prometheus/prometheus.yml"
+
+            grafana:
+              image: grafana/grafana:latest
+              container_name: grafana
+              restart: unless-stopped
+              ports:
+                - "3000:3000"
+              environment:
+                - GF_SECURITY_ADMIN_USER=admin
+                - GF_SECURITY_ADMIN_PASSWORD=admin
+              volumes:
+                - grafana_data:/var/lib/grafana
+
+        volumes:
+            grafana_data:
         mode: '0644'
-
-    - name: Remove old Grafana and Prometheus containers
-      community.docker.docker_container:
-        name: "{{ item }}"
-        state: absent
-      loop:
-        - grafana
-        - prometheus
-
-- hosts: monitoring
-  become: true
-  vars:
-    prometheus_dir: /home/ssm-user/devops-bootcamp-project/monitoring
-  tasks:
 
     - name: Ensure Docker CLI Compose plugin directory exists
       file:
@@ -117,6 +141,14 @@
 
     - debug:
         msg: "Docker Compose installed: {{ compose_version.stdout }}"
+
+    - name: Remove old Grafana and Prometheus containers
+      community.docker.docker_container:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - grafana
+        - prometheus
 
     - name: Start Monitoring Stack
       community.docker.docker_compose_v2:
