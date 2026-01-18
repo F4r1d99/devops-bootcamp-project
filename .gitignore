@@ -21,3 +21,5 @@ terraform.rc
 *.pem
 *.ppk
 
+#lab final project directory
+.lab-final-project/
