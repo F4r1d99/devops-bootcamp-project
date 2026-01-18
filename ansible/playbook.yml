@@ -96,22 +96,17 @@
   become: true
   tasks:
 
-    - name: Update apt cache (Ubuntu/Debian only)
-      apt:
-        update_cache: yes
-      when: ansible_os_family == "Debian"
+    - name: Ensure Docker CLI Compose plugin directory exists
+      file:
+        path: /usr/local/lib/docker/cli-plugins
+        state: directory
+        mode: '0755'
 
-    - name: Install Docker Compose plugin (Debian/Ubuntu)
-      apt:
-        name: docker-compose-plugin
-        state: present
-      when: ansible_os_family == "Debian"
-
-    - name: Install Docker Compose plugin (Amazon Linux 2 / RHEL)
-      yum:
-        name: docker-compose-plugin
-        state: present
-      when: ansible_os_family == "RedHat"
+    - name: Download Docker Compose V2 binary manually
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.40.1/docker-compose-linux-x86_64
+        dest: /usr/local/lib/docker/cli-plugins/docker-compose
+        mode: '0755'
 
     - name: Verify Docker Compose plugin installation
       command: docker compose version
@@ -120,6 +115,13 @@
 
     - debug:
         msg: "Docker Compose installed: {{ compose_version.stdout }}"
+
+    - name: Start Monitoring Stack
+      community.docker.docker_compose_v2:
+        project_src: /home/ssm-user/devops-bootcamp-project/monitoring
+        state: present
+        recreate: always
+
 
     - name: Start Monitoring Stack
       community.docker.docker_compose_v2:
