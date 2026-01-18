@@ -1,14 +1,14 @@
 docker_version: "24.0.5"
 
-# Web Application
 web_app_repo: "https://github.com/Infratify/lab-final-project.git"
 web_app_image: "devops-bootcamp/final-project-faridamirul:latest"
 
-# Monitoring
 monitoring_tools:
   - prometheus
   - grafana
+
 grafana_admin_user: "admin"
 grafana_admin_password: "StrongPassword123!"
+
 
 
