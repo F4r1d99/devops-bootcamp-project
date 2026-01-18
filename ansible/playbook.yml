@@ -1,35 +1,20 @@
-- name: Deploy Docker image on SSM-managed servers
+- name: Base Configuration (Docker)
   hosts: all
-  gather_facts: no   # disables fact gathering to avoid NoneType errors
-  vars:
-    image_name: devops-bootcamp/final-project-faridamirul
-    image_tag: latest
-    ecr_region: ap-southeast-1
-    aws_account_id: "938674806440"  # replace with your AWS account ID
-    ecr_uri: "{{ aws_account_id }}.dkr.ecr.{{ ecr_region }}.amazonaws.com/{{ image_name }}:{{ image_tag }}"
-  tasks:
+  become: true
+  gather_facts: false
+  roles:
+    - docker
 
-    - name: Log in to AWS ECR
-      shell: |
-        aws ecr get-login-password --region {{ ecr_region }} | \
-        docker login --username AWS --password-stdin {{ aws_account_id }}.dkr.ecr.{{ ecr_region }}.amazonaws.com
-      args:
-        executable: /bin/bash
+- name: Deploy Web Application
+  hosts: web
+  become: true
+  gather_facts: false
+  roles:
+    - web
 
-    - name: Stop existing container if running
-      shell: |
-        docker stop final-project || true
-        docker rm final-project || true
-      ignore_errors: yes
-
-    - name: Pull latest Docker image from ECR
-      shell: |
-        docker pull {{ ecr_uri }}
-      args:
-        executable: /bin/bash
-
-    - name: Run Docker container
-      shell: |
-        docker run -d --name final-project -p 80:80 {{ ecr_uri }}
-      args:
-        executable: /bin/bash
+- name: Deploy Monitoring Stack
+  hosts: monitoring
+  become: true
+  gather_facts: false
+  roles:
+    - monitoring

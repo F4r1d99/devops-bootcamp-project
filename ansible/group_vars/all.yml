@@ -1,10 +1,16 @@
-docker_version: "24.0.5"
-web_app_repo: "https://github.com/Infratify/lab-final-project.git"
-web_app_image: "devops-bootcamp/final-project-faridamirul:latest"
-monitoring_tools:
-  - prometheus
-  - grafana
-grafana_admin_user: "admin"
-grafana_admin_password: "StrongPassword123!"
+# Application
+image_name: devops-bootcamp/final-project-faridamirul
+image_tag: latest
+container_name: final-project
+container_port: 80
 
+# AWS / ECR
+aws_account_id: "938674806440"
+ecr_region: ap-southeast-1
+ecr_uri: "{{ aws_account_id }}.dkr.ecr.{{ ecr_region }}.amazonaws.com/{{ image_name }}:{{ image_tag }}"
+
+# Monitoring
+prometheus_port: 9090
+grafana_port: 3000
+node_exporter_port: 9100
 

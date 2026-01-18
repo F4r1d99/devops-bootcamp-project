@@ -1,22 +1,28 @@
+---
+- name: Create Prometheus configuration directory
+  file:
+    path: /opt/prometheus
+    state: directory
+
+- name: Copy Prometheus configuration
+  copy:
+    src: prometheus.yml
+    dest: /opt/prometheus/prometheus.yml
+
 - name: Run Prometheus container
-  community.docker.docker_container:
-    name: prometheus
-    image: prom/prometheus:latest
-    state: started
-    restart_policy: always
-    ports:
-      - "9090:9090"
-    volumes:
-      - /home/ubuntu/prometheus.yml:/etc/prometheus/prometheus.yml
+  shell: |
+    docker run -d \
+      --name prometheus \
+      -p {{ prometheus_port }}:9090 \
+      -v /opt/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml \
+      prom/prometheus
+  ignore_errors: yes
 
 - name: Run Grafana container
-  community.docker.docker_container:
-    name: grafana
-    image: grafana/grafana:latest
-    state: started
-    restart_policy: always
-    ports:
-      - "3000:3000"
-    env:
-      GF_SECURITY_ADMIN_USER: "{{ grafana_admin_user }}"
-      GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_password }}"
+  shell: |
+    docker run -d \
+      --name grafana \
+      -p {{ grafana_port }}:3000 \
+      grafana/grafana
+  ignore_errors: yes
+
