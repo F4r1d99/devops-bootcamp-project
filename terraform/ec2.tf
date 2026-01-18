@@ -1,6 +1,6 @@
 # Web Server
 resource "aws_instance" "web_server" {
-  ami                         = "<ubuntu-24.04-ami-id>"
+  ami                         = "ami-00d8fc944fb171e29"
   instance_type               = "t3.micro"
   subnet_id                   = aws_subnet.public_subnet.id
   private_ip                  = "10.0.0.5"
@@ -13,7 +13,7 @@ resource "aws_instance" "web_server" {
 
 # Ansible Controller
 resource "aws_instance" "ansible_controller" {
-  ami                         = "<ubuntu-24.04-ami-id>"
+  ami                         = "ami-00d8fc944fb171e29"
   instance_type               = "t3.micro"
   subnet_id                   = aws_subnet.private_subnet.id
   private_ip                  = "10.0.0.135"
@@ -26,7 +26,7 @@ resource "aws_instance" "ansible_controller" {
 
 # Monitoring Server
 resource "aws_instance" "monitoring_server" {
-  ami                         = "<ubuntu-24.04-ami-id>"
+  ami                         = "ami-00d8fc944fb171e29"
   instance_type               = "t3.micro"
   subnet_id                   = aws_subnet.private_subnet.id
   private_ip                  = "10.0.0.136"
