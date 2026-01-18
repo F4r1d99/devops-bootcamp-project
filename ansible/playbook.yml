@@ -1,34 +1,104 @@
 ---
-- name: Setup Infrastructure
+- name: Prepare All Servers (Install Docker)
   hosts: all
   become: true
   tasks:
-    - name: Update apt and install Docker
+    - name: Update apt cache
       apt:
-        name: docker.io
         update_cache: yes
+
+    - name: Install prerequisite packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
         state: present
 
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable
+        state: present
+
+    - name: Install Docker Engine
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Ensure Docker is started and enabled
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+# ---------------------------------------------------------
+# WEB SERVER CONFIGURATION
+# ---------------------------------------------------------
 - name: Configure Web Server
   hosts: webserver
   become: true
   tasks:
-    - name: Run Web App Container
+    - name: Install Node Exporter (for Prometheus Metrics)
       docker_container:
-        name: web-app
-        image: nginx:latest
+        name: node-exporter
+        image: prom/node-exporter:latest
         state: started
+        restart_policy: always
+        published_ports:
+          - "9100:9100"
+
+    - name: Deploy Web Application Container
+      docker_container:
+        name: my-devops-app
+        # Ganti dengan link ECR Anda jika sudah melakukan Push di GitHub Action
+        image: 938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul:Latest 
+        state: started
+        restart_policy: always
         published_ports:
           - "80:80"
 
-- name: Configure Monitoring
+# ---------------------------------------------------------
+# MONITORING SERVER CONFIGURATION
+# ---------------------------------------------------------
+- name: Configure Monitoring Server
   hosts: monitoring
   become: true
   tasks:
-    - name: Run Grafana
+    - name: Create Prometheus config directory
+      file:
+        path: /etc/prometheus
+        state: directory
+
+    - name: Copy Prometheus configuration
+      copy:
+        src: prometheus.yml
+        dest: /etc/prometheus/prometheus.yml
+
+    - name: Deploy Prometheus
+      docker_container:
+        name: prometheus
+        image: prom/prometheus:latest
+        state: started
+        restart_policy: always
+        published_ports:
+          - "9090:9090"
+        volumes:
+          - /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+    - name: Deploy Grafana
       docker_container:
         name: grafana
         image: grafana/grafana:latest
         state: started
+        restart_policy: always
         published_ports:
           - "3000:3000"
+        env:
+          GF_SECURITY_ADMIN_PASSWORD: "admin" # Segera ganti saat login pertama
