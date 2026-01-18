@@ -39,7 +39,7 @@ jobs:
       - name: Build Docker image
         run: |
           IMAGE_NAME=devops-bootcamp/final-project-faridamirul
-          IMAGE_TAG=$LATEST
+          IMAGE_TAG=Latest
           docker build -t $IMAGE_NAME:$IMAGE_TAG ./lab-final-project
 
       # 6️⃣ Tag Docker image for ECR
@@ -47,7 +47,7 @@ jobs:
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           IMAGE_NAME=devops-bootcamp/final-project-faridamirul
-          IMAGE_TAG=$LATEST
+          IMAGE_TAG=Latest
           ECR_URI=$ACCOUNT_ID.dkr.ecr.ap-southeast-1.amazonaws.com/$IMAGE_NAME
           docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
           echo "ECR_URI=$ECR_URI" >> $GITHUB_ENV
@@ -55,5 +55,5 @@ jobs:
       # 7️⃣ Push Docker image to ECR
       - name: Push Docker image to ECR
         run: |
-          IMAGE_TAG=$LATEST
+          IMAGE_TAG=Latest
           docker push $ECR_URI:$IMAGE_TAG
