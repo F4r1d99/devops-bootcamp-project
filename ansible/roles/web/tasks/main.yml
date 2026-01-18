@@ -1,20 +1,21 @@
-- name: Clone Web Application
+---
+- name: Clone Web App repo
   git:
     repo: "{{ web_app_repo }}"
     dest: /home/ubuntu/my-devops-project
     version: main
 
 - name: Build Docker image
-  community.docker.docker_image:
-    path: /home/ubuntu/my-devops-project
+  docker_image:
     name: "{{ web_app_image }}"
-    tag: latest
+    path: /home/ubuntu/my-devops-project
+    state: present
 
 - name: Run Web App container
-  community.docker.docker_container:
-    name: my-devops-project
+  docker_container:
+    name: web_app
     image: "{{ web_app_image }}"
     state: started
+    restart_policy: always
     ports:
       - "80:80"
-    restart_policy: always
