@@ -1,17 +1,113 @@
-- hosts: all
+---
+- name: Deploy Web Server
+  hosts: web
   become: yes
   tasks:
     - name: Update and upgrade apt
       apt:
         update_cache: yes
         upgrade: dist
+        cache_valid_time: 3600
 
-- hosts: webservers
-  become: yes
-  roles:
-    - webserver
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
 
-- hosts: monitoring
+    - name: Install Docker Compose
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Login to AWS ECR
+      docker_login:
+        registry_url: i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
+        username: AWS
+        password: "{{ lookup('pipe', 'aws ecr get-login-password --region ap-southeast-1') }}"
+
+    - name: Pull Docker image from ECR
+      docker_image:
+        name: i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul
+        tag: latest
+        source: pull
+
+    - name: Run Docker container
+      docker_container:
+        name: final-project
+        image: i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul:latest
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "80:80"
+
+
+- name: Deploy Monitoring Server
+  hosts: monitoring
   become: yes
-  roles:
-    - monitoring
+  tasks:
+    - name: Update and upgrade apt
+      apt:
+        update_cache: yes
+        upgrade: dist
+        cache_valid_time: 3600
+
+    - name: Install Docker and Docker Compose
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+        state: present
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Create Prometheus directory
+      file:
+        path: /opt/prometheus
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create Monitoring directory
+      file:
+        path: /opt/monitoring
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create Prometheus config
+      template:
+        src: prometheus.yml.j2
+        dest: /opt/prometheus/prometheus.yml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Create Docker Compose file
+      template:
+        src: docker-compose-monitoring.yml.j2
+        dest: /opt/monitoring/docker-compose.yml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Start Monitoring Stack
+      command: docker-compose up -d
+      args:
+        chdir: /opt/monitoring
+
+    - name: Cloudflare Tunnel Reminder
+      debug:
+        msg: "Please install cloudflared on monitoring server and create a tunnel for monitoring.frdamirul.com"
+
