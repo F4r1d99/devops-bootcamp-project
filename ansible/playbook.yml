@@ -25,11 +25,6 @@
         state: started
         enabled: yes
 
-    - name: Login to AWS ECR via CLI
-      command: >
-        aws ecr get-login-password --region ap-southeast-1
-        | docker login --username AWS --password-stdin i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
-
     - name: Pull Docker image from ECR
       docker_image:
         name: i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com/devops-bootcamp/final-project-faridamirul
