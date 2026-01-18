@@ -93,22 +93,27 @@
         - prometheus
 
 - hosts: monitoring
-  become: yes
+  become: true
   tasks:
-    - name: Ensure Docker CLI Compose plugin directory exists
-      file:
-        path: /usr/local/lib/docker/cli-plugins
-        state: directory
-        mode: '0755'
 
-    - name: Install Docker Compose V2 plugin
-      get_url:
-        url: https://github.com/docker/compose/releases/download/v2.22.2/docker-compose-linux-x86_64
-        dest: /usr/local/lib/docker/cli-plugins/docker-compose
-        mode: '0755'
-      register: compose_install
+    - name: Update apt cache (Ubuntu/Debian only)
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
 
-    - name: Verify Docker Compose V2 installation
+    - name: Install Docker Compose plugin (Debian/Ubuntu)
+      apt:
+        name: docker-compose-plugin
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker Compose plugin (Amazon Linux 2 / RHEL)
+      yum:
+        name: docker-compose-plugin
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Verify Docker Compose plugin installation
       command: docker compose version
       register: compose_version
       changed_when: false
