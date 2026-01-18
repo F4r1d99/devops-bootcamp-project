@@ -57,9 +57,12 @@
         ports:
           - "80:80"
 
-- name: Deploy Monitoring Server
+- name: Deploy Monitoring Stack
   hosts: monitoring
   become: yes
+  vars:
+    prometheus_dir: /opt/prometheus
+    monitoring_dir: /opt/monitoring
   tasks:
     - name: Update and upgrade apt
       apt:
@@ -72,68 +75,65 @@
         name:
           - docker.io
           - docker-compose
+          - python3-pip
         state: present
 
     - name: Ensure Docker service is running
       service:
-          name: docker
-          state: started
-          enabled: yes
+        name: docker
+        state: started
+        enabled: yes
 
-    - name: Create Prometheus directory
+    - name: Ensure Prometheus directory exists
       file:
-          path: /opt/prometheus
-          state: directory
-          owner: root
-          group: root
-          mode: '0755'
-
-    - name: Create monitoring directories
-      file:
-        path: "{{ item }}"
+        path: "{{ prometheus_dir }}"
         state: directory
         owner: root
         group: root
         mode: '0755'
-      loop:
-        - /opt/prometheus
-        - /opt/monitoring
 
-    - name: Create Prometheus config
-      template:
-          src: prometheus.yml.j2
-          dest: /opt/prometheus/prometheus.yml
-          owner: root
-          group: root
-          mode: '0644'
+    - name: Ensure Monitoring directory exists
+      file:
+        path: "{{ monitoring_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
 
-    - name: Deploy Prometheus config
+    - name: Ensure Prometheus config file exists
       template:
         src: prometheus.yml.j2
-        dest: /opt/prometheus/prometheus.yml
+        dest: "{{ prometheus_dir }}/prometheus.yml"
         owner: root
         group: root
         mode: '0644'
 
-    - name: Create Docker Compose file
+    - name: Ensure Docker Compose file exists
       template:
-          src: docker-compose-monitoring.yml.j2
-          dest: /opt/monitoring/docker-compose.yml
-          owner: root
-          group: root
-          mode: '0644'
+        src: docker-compose-monitoring.yml.j2
+        dest: "{{ monitoring_dir }}/docker-compose.yml"
+        owner: root
+        group: root
+        mode: '0644'
 
-    - name: Stop any existing monitoring containers
-      shell: docker-compose down
-      args:
-          chdir: /opt/monitoring
+    - name: Remove old Prometheus and Grafana containers if exist
+      shell: |
+        docker rm -f prometheus grafana || true
+      ignore_errors: yes
+
+    - name: Ensure ports 9090 and 3000 are free
+      shell: |
+        for port in 9090 3000; do
+          pid=$(sudo lsof -ti tcp:$port)
+          if [ -n "$pid" ]; then sudo kill -9 $pid; fi
+        done
       ignore_errors: yes
 
     - name: Start Monitoring Stack
-      shell: docker-compose up -d
+      command: docker-compose up -d
       args:
-          chdir: /opt/monitoring
+        chdir: "{{ monitoring_dir }}"
 
     - name: Cloudflare Tunnel Reminder
       debug:
-          msg: "Please install cloudflared on monitoring server and create a tunnel for monitoring.frdamirul.com"
+        msg: "Please install cloudflared on monitoring server and create a tunnel for monitoring.frdamirul.com"
