@@ -59,81 +59,41 @@
 
 - name: Deploy Monitoring Stack
   hosts: monitoring
-  become: yes
+  become: true
   vars:
-    prometheus_dir: /opt/prometheus
-    monitoring_dir: /opt/monitoring
+    prometheus_dir: /opt/monitoring
+    prometheus_config: "{{ prometheus_dir }}/prometheus.yml"
+    docker_compose_file: "{{ prometheus_dir }}/docker-compose-monitoring.yml"
+
   tasks:
-    - name: Update and upgrade apt
-      apt:
-        update_cache: yes
-        upgrade: dist
-        cache_valid_time: 3600
-
-    - name: Install Docker and Docker Compose
-      apt:
-        name:
-          - docker.io
-          - docker-compose
-          - python3-pip
-        state: present
-
-    - name: Ensure Docker service is running
-      service:
-        name: docker
-        state: started
-        enabled: yes
-
-    - name: Ensure Prometheus directory exists
+    - name: Ensure monitoring directory exists
       file:
         path: "{{ prometheus_dir }}"
         state: directory
-        owner: root
-        group: root
         mode: '0755'
 
-    - name: Ensure Monitoring directory exists
-      file:
-        path: "{{ monitoring_dir }}"
-        state: directory
-        owner: root
-        group: root
-        mode: '0755'
-
-    - name: Ensure Prometheus config file exists
+    - name: Deploy Prometheus config
       template:
-        src: prometheus.yml.j2
-        dest: "{{ prometheus_dir }}/prometheus.yml"
-        owner: root
-        group: root
+        src: templates/prometheus.yml.j2
+        dest: "{{ prometheus_config }}"
         mode: '0644'
 
-    - name: Ensure Docker Compose file exists
+    - name: Deploy Docker Compose file
       template:
-        src: docker-compose-monitoring.yml.j2
-        dest: "{{ monitoring_dir }}/docker-compose.yml"
-        owner: root
-        group: root
+        src: templates/docker-compose-monitoring.yml.j2
+        dest: "{{ docker_compose_file }}"
         mode: '0644'
 
-    - name: Remove old Prometheus and Grafana containers if exist
-      shell: |
-        docker rm -f prometheus grafana || true
-      ignore_errors: yes
-
-    - name: Ensure ports 9090 and 3000 are free
-      shell: |
-        for port in 9090 3000; do
-          pid=$(sudo lsof -ti tcp:$port)
-          if [ -n "$pid" ]; then sudo kill -9 $pid; fi
-        done
-      ignore_errors: yes
+    - name: Remove old Grafana and Prometheus containers
+      community.docker.docker_container:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - grafana
+        - prometheus
 
     - name: Start Monitoring Stack
-      command: docker-compose up -d
-      args:
-        chdir: "{{ monitoring_dir }}"
-
-    - name: Cloudflare Tunnel Reminder
-      debug:
-        msg: "Please install cloudflared on monitoring server and create a tunnel for monitoring.frdamirul.com"
+      community.docker.docker_compose:
+        project_src: "{{ prometheus_dir }}"
+        state: present
+        restarted: true
