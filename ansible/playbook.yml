@@ -9,14 +9,13 @@
         upgrade: dist
         cache_valid_time: 3600
 
-    - name: Install Docker
+    - name: Install dependencies
       apt:
-        name: docker.io
-        state: present
-
-    - name: Install Docker Compose
-      apt:
-        name: docker-compose
+        name:
+          - docker.io
+          - docker-compose
+          - unzip
+          - curl
         state: present
 
     - name: Ensure Docker service is running
@@ -24,6 +23,19 @@
         name: docker
         state: started
         enabled: yes
+
+    - name: Install AWS CLI v2
+      shell: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+        unzip /tmp/awscliv2.zip -d /tmp
+        sudo /tmp/aws/install
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Login to AWS ECR
+      command: >
+        aws ecr get-login-password --region ap-southeast-1
+        | docker login --username AWS --password-stdin i938674806440.dkr.ecr.ap-southeast-1.amazonaws.com
 
     - name: Pull Docker image from ECR
       docker_image:
