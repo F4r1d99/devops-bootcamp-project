@@ -1,37 +1,20 @@
----
-- name: Login to AWS ECR (controller only)
-  shell: |
-    aws ecr get-login-password --region {{ ecr_region }} | \
-    docker login --username AWS --password-stdin \
-    {{ aws_account_id }}.dkr.ecr.{{ ecr_region }}.amazonaws.com
-  args:
-    executable: /bin/bash
-  delegate_to: localhost
-  run_once: true
+- name: Clone Web Application
+  git:
+    repo: "{{ web_app_repo }}"
+    dest: /home/ubuntu/my-devops-project
+    version: main
 
-- name: Stop existing container if running
-  shell: |
-    docker stop {{ container_name }} || true
-    docker rm {{ container_name }} || true
-  ignore_errors: yes
+- name: Build Docker image
+  community.docker.docker_image:
+    path: /home/ubuntu/my-devops-project
+    name: "{{ web_app_image }}"
+    tag: latest
 
-- name: Pull Docker image from ECR
-  shell: docker pull {{ ecr_uri }}
-
-- name: Run web application container
-  shell: |
-    docker run -d \
-      --name {{ container_name }} \
-      -p {{ container_port }}:80 \
-      {{ ecr_uri }}
-
-- name: Run Node Exporter for system metrics
-  shell: |
-    docker run -d \
-      --name node_exporter \
-      --net="host" \
-      --pid="host" \
-      -v "/:/host:ro,rslave" \
-      prom/node-exporter \
-      --path.rootfs=/host
-  ignore_errors: yes
+- name: Run Web App container
+  community.docker.docker_container:
+    name: my-devops-project
+    image: "{{ web_app_image }}"
+    state: started
+    ports:
+      - "80:80"
+    restart_policy: always
