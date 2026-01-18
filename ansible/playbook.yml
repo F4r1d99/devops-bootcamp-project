@@ -88,13 +88,16 @@
           group: root
           mode: '0755'
 
-    - name: Create Monitoring directory
+    - name: Create monitoring directories
       file:
-          path: /opt/monitoring
-          state: directory
-          owner: root
-          group: root
-          mode: '0755'
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - /opt/prometheus
+        - /opt/monitoring
 
     - name: Create Prometheus config
       template:
@@ -103,6 +106,14 @@
           owner: root
           group: root
           mode: '0644'
+
+    - name: Deploy Prometheus config
+      template:
+        src: prometheus.yml.j2
+        dest: /opt/prometheus/prometheus.yml
+        owner: root
+        group: root
+        mode: '0644'
 
     - name: Create Docker Compose file
       template:
