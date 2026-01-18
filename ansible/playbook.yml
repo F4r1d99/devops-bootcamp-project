@@ -52,7 +52,6 @@
 - name: Deploy Monitoring Server
   hosts: monitoring
   become: yes
-  remote_tmp: /tmp/.ansible/tmp
   tasks:
     - name: Update and upgrade apt
       apt:
