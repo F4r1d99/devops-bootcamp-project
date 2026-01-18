@@ -93,7 +93,7 @@
         - prometheus
 
     - name: Start Monitoring Stack
-      community.docker.docker_compose:
+      community.docker.docker_compose_v2:
         project_src: "{{ prometheus_dir }}"
         state: present
         restarted: true
