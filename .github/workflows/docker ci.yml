@@ -17,6 +17,8 @@ jobs:
       # 1️⃣ Checkout the main repo (required for OIDC)
       - name: Checkout main repo
         uses: actions/checkout@v4
+        with:
+          submodules: false
 
       # 2️⃣ Configure AWS credentials using OIDC
       - name: Configure AWS credentials using OIDC role
